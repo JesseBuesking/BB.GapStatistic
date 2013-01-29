@@ -35,8 +35,8 @@ nosetests.xml
 .pydevproject
 
 # IntelliJ
-.idea
-.iml
+*.idea
+*.iml
 
 # custom directories
 data/*
