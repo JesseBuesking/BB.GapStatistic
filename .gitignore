@@ -36,7 +36,7 @@ nosetests.xml
 
 # IntelliJ
 .idea
-pm.iml
+.iml
 
 # custom directories
 data/*
