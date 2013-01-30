@@ -1,39 +1,12 @@
-#from matplotlib.collections import PatchCollection
 import numpy as np
 import matplotlib.pyplot as plt
+import pkg_resources
 from sklearn.cluster import KMeans
+import BB.GapStatistic
+from BB.GapStatistic.gap_statistic import gap_statistic
 
 
-def gap_statistic(xy, k, iterations):
-    xmin = np.min(xy[:, 0])
-    xmax = np.max(xy[:, 0])
-    ymin = np.min(xy[:, 1])
-    ymax = np.max(xy[:, 1])
-
-    ind_runs = 10
-    max_iter = 500
-    #    n_jobs = 4
-    gap_estimator = KMeans(init='k-means++', precompute_distances=True,
-                           n_clusters=k, n_init=ind_runs, max_iter=max_iter)
-
-    mean = 0
-    for i in range(iterations):
-        unif = np.random.uniform(0, 100, (xy.size / 2, 2))
-        unif[:, 0] = ((xmax - xmin) * (unif[:, 0] - 0)) / (100 - 0)
-        unif[:, 1] = ((ymax - ymin) * (unif[:, 1] - 0)) / (100 - 0)
-        #        plt.plot(unif[:,0], unif[:,1], 'o')
-        #        plt.show()
-        gap_estimator.fit(unif)
-        mean += gap_estimator.inertia_
-
-    mean /= iterations
-
-    return mean
-
-
-def main():
-    k_range = 10
-    values = np.zeros(shape=(k_range, 2))
+def generate_fake_data():
     np.random.seed(1)
 
     cl1 = np.random.normal(0, 1, (20, 2))
@@ -43,54 +16,72 @@ def main():
     cl2[:, 1] += 2
     cl3[:, 0] += 5
 
-    xy = np.concatenate((cl1, cl2, cl3))
+    fake_data = np.concatenate((cl1, cl2, cl3))
 
-    for k in range(1, k_range):
-        ind_runs = 10
-        max_iter = 500
-        #    n_jobs = 4
-        estimator = KMeans(init='k-means++', precompute_distances=True,
-                           n_clusters=k, n_init=ind_runs, max_iter=max_iter)
-        estimator.fit(xy)
+    return fake_data
 
-        mean = gap_statistic(xy, k, 10)
 
-        values[k, 0] = estimator.inertia_
-        values[k, 1] = mean
+def main():
+    k_max = 10 + 1
+    number_of_bootstraps = 10
+    data = generate_fake_data()
+    gaps, confidence = gap_statistic(data, k_max, number_of_bootstraps)
 
-    gap_results = np.zeros(shape=(k_range, 1))
-    for i in range(1, k_range):
-        gap_results[i] = np.log(values[i, 1]) - np.log(values[i, 0])
+    # find the value of k with the maximum gap
+    max_k = gaps.argmax(axis=0)
 
-    max_index = gap_results.argmax(axis=0)
+    # renaming variables for clarity
+    x = np.arange(0, k_max)
+    y = gaps
+
+    # create a new plot
     fig = plt.figure(1)
+
+    # not sure what i was doing here...
     ax = fig.gca()
+
+    # draw some grid lines
     ax.yaxis.grid(color='0.75', linestyle='dashed')
     ax.xaxis.grid(color='0.75', linestyle='dashed')
-    ax.text(max_index, gap_results[max_index], "max at k = {}".format(
-        max_index[0]))
-    plt.plot([i for i in range(k_range)], gap_results)
-    plt.scatter(max_index, gap_results[max_index],
-                facecolors='none', edgecolors='r', s=200)
-    #    plt.plot(xy[:,0], xy[:,1], 'o')
 
-    #    color_choices = [[round(np.random.uniform(0, 1),1),
-    #                      round(np.random.uniform(0, 1),1),
-    #                      round(np.random.uniform(0, 1),1)] for _ in range(3)]
-    #
-    #    colors = ([color_choices[i] for i in estimator.labels_])
-    #
-    #    plt.scatter(xy[:, 0], xy[:, 1], c=colors)
-    #
-    #    plt.scatter(estimator.cluster_centers_[:,0],
-    #                estimator.cluster_centers_[:,1],
-    #                marker='o', s = 200, linewidths=2, c='none')
-    #
-    #    plt.scatter(estimator.cluster_centers_[:,0],
-    #                estimator.cluster_centers_[:,1],
-    #                marker='o', s = 150, linewidths=2, c='red')
+    # plot the gaps plus the confidence intervals
+    plt.errorbar(x, y.flatten(), yerr=confidence.T, ecolor='b', color='k')
 
+    # circle the k corresponding to the largest gap, and annotate it
+    plt.scatter(max_k, y[max_k], facecolors='none', edgecolors='r', s=200)
+    ax.text(max_k, gaps[max_k], "max at k = {}".format(max_k[0]))
+
+    # show all ticks
+    plt.xticks(x, x)
+
+    # label it up!
+    plt.xlabel("number of clusters")
+    plt.ylabel("gap")
+    plt.title("Estimating the number of clusters via the gap statistic")
+
+    # now we can finally render the plot
     plt.show()
 
 if __name__ == "__main__":
     main()
+
+
+#### old plotting code
+
+#    plt.plot(xy[:,0], xy[:,1], 'o')
+
+#    color_choices = [[round(np.random.uniform(0, 1),1),
+#                      round(np.random.uniform(0, 1),1),
+#                      round(np.random.uniform(0, 1),1)] for _ in range(3)]
+#
+#    colors = ([color_choices[i] for i in estimator.labels_])
+#
+#    plt.scatter(xy[:, 0], xy[:, 1], c=colors)
+#
+#    plt.scatter(estimator.cluster_centers_[:,0],
+#                estimator.cluster_centers_[:,1],
+#                marker='o', s = 200, linewidths=2, c='none')
+#
+#    plt.scatter(estimator.cluster_centers_[:,0],
+#                estimator.cluster_centers_[:,1],
+#                marker='o', s = 150, linewidths=2, c='red')
