@@ -1,8 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pkg_resources
-from sklearn.cluster import KMeans
-import BB.GapStatistic
 from BB.GapStatistic.gap_statistic import gap_statistic
 
 

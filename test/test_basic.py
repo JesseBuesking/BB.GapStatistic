@@ -29,7 +29,7 @@ class Test(unittest.TestCase):
 
         data = np.concatenate((cl1, cl2, cl3))
 
-        gaps, confidence = gs.gap_statistic(data, 10)
+        gaps, confidence = gs.gap_statistic(data, 10, 10)
 
         expected = 3
         actual = gaps.argmax(axis=0)
