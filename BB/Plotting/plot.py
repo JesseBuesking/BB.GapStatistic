@@ -1,6 +1,8 @@
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+#need this for 3d plotting
+#noinspection PyUnresolvedReferences
 from mpl_toolkits.mplot3d import axes3d
 
 def plot_gaps(gaps, confidence, dimensions):
@@ -94,7 +96,7 @@ def plot_2d(data, centroids, colors):
     plt.scatter(centroids[:, 0], centroids[:, 1],
                 marker='o', s=150, linewidths=2, c='red')
 
-##### plot in 3d`
+#### plot 2d data in 3d
 #    fig = plt.figure()
 #    ax = fig.gca(projection='3d')
 #    # Plotting the points.
