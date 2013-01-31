@@ -1,3 +1,4 @@
+import logging
 from sklearn.cluster import KMeans
 import numpy as np
 
@@ -38,6 +39,13 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
     for run_number in range(number_of_bootstraps):
         uniform_points = generate_bounding_box_uniform_points(data)
         dispersion, _, _ = default_clustering(uniform_points, k, 10, 500)
+
+        if 0 == dispersion:
+            logging.warning(
+                '[Reference Dispersion] Cannot take the log of 0 for run '
+                'number = {}.'.format(run_number))
+            continue
+
         dispersions[run_number] = np.log(dispersion)
 
     mean_dispersions = np.mean(dispersions)
@@ -54,6 +62,13 @@ def gap_statistic(data, k_max, number_of_bootstraps):
     for k in range(1, k_max):
         # add the current k's dispersion
         actual_dispersion, _, _ = default_clustering(data, k, 10, 500)
+
+        if 0 == actual_dispersion:
+            logging.warning(
+                '[Actual Dispersion] Cannot take the log of 0 for k = {}.'
+                .format(k))
+            continue
+
         actual_dispersions[k] = np.log(actual_dispersion)
 
         # add the mean reference dispersion

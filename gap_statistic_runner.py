@@ -1,6 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from BB.GapStatistic.gap_statistic import gap_statistic
+from BB.GapStatistic.gap_statistic import gap_statistic, default_clustering
+from BB.Plotting.plot import plot_gaps, plot_clusters
 
 
 def generate_fake_data():
@@ -24,61 +24,12 @@ def main():
     data = generate_fake_data()
     gaps, confidence = gap_statistic(data, k_max, number_of_bootstraps)
 
-    # find the value of k with the maximum gap
+    plot_gaps(gaps, confidence, data.shape[1])
     max_k = gaps.argmax(axis=0)
-
-    # renaming variables for clarity
-    x = np.arange(0, k_max)
-    y = gaps
-
-    # create a new plot
-    fig = plt.figure(1)
-
-    # not sure what i was doing here...
-    ax = fig.gca()
-
-    # draw some grid lines
-    ax.yaxis.grid(color='0.75', linestyle='dashed')
-    ax.xaxis.grid(color='0.75', linestyle='dashed')
-
-    # plot the gaps plus the confidence intervals
-    plt.errorbar(x, y.flatten(), yerr=confidence.T, ecolor='b', color='k')
-
-    # circle the k corresponding to the largest gap, and annotate it
-    plt.scatter(max_k, y[max_k], facecolors='none', edgecolors='r', s=200)
-    ax.text(max_k, gaps[max_k], "max at k = {}".format(max_k[0]))
-
-    # show all ticks
-    plt.xticks(x, x)
-
-    # label it up!
-    plt.xlabel("number of clusters")
-    plt.ylabel("gap")
-    plt.title("Estimating the number of clusters via the gap statistic")
-
-    # now we can finally render the plot
-    plt.show()
+    if 3 > max_k:
+        inertia, point_map, centroids = default_clustering(data, max_k, 10,
+                                                           300)
+        plot_clusters(data, point_map, centroids)
 
 if __name__ == "__main__":
     main()
-
-
-#### old plotting code
-
-#    plt.plot(xy[:,0], xy[:,1], 'o')
-
-#    color_choices = [[round(np.random.uniform(0, 1),1),
-#                      round(np.random.uniform(0, 1),1),
-#                      round(np.random.uniform(0, 1),1)] for _ in range(3)]
-#
-#    colors = ([color_choices[i] for i in estimator.labels_])
-#
-#    plt.scatter(xy[:, 0], xy[:, 1], c=colors)
-#
-#    plt.scatter(estimator.cluster_centers_[:,0],
-#                estimator.cluster_centers_[:,1],
-#                marker='o', s = 200, linewidths=2, c='none')
-#
-#    plt.scatter(estimator.cluster_centers_[:,0],
-#                estimator.cluster_centers_[:,1],
-#                marker='o', s = 150, linewidths=2, c='red')
