@@ -1,9 +1,16 @@
+"""
+Methods for calculating the gap statistic.
+"""
+
 import logging
 from sklearn.cluster import KMeans
 import numpy as np
 
 
 def default_clustering(data, k, individual_runs=10, iterations=300):
+    """
+    The default clustering method.
+    """
     estimator = KMeans(init='k-means++',
                        precompute_distances=True,
                        n_clusters=k,
@@ -15,6 +22,9 @@ def default_clustering(data, k, individual_runs=10, iterations=300):
 
 
 def generate_bounding_box_uniform_points(data):
+    """
+    Generates a bounding box of uniform points around the data provided.
+    """
     number_of_data_points = data.shape[0]
     number_of_dimensions = data.shape[1]
 
@@ -35,6 +45,9 @@ def generate_bounding_box_uniform_points(data):
 
 
 def find_reference_dispersion(data, k, number_of_bootstraps=10):
+    """
+    Finds the reference dispersion (and confidence) for the data supplied.
+    """
     dispersions = np.zeros(shape=(number_of_bootstraps, 1))
     for run_number in range(number_of_bootstraps):
         uniform_points = generate_bounding_box_uniform_points(data)
@@ -56,6 +69,9 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
 
 
 def gap_statistic(data, k_max, number_of_bootstraps):
+    """
+    Calculates the gap statistic for the data supplied.
+    """
     actual_dispersions = np.zeros(shape=(k_max, 1))
     mean_ref_dispersions = np.zeros(shape=(k_max, 1))
     stddev_ref_dispersions = np.zeros(shape=(k_max, 1))
@@ -73,7 +89,7 @@ def gap_statistic(data, k_max, number_of_bootstraps):
 
         # add the mean reference dispersion
         mean_ref_dispersions[k], stddev_ref_dispersions[k] =\
-        find_reference_dispersion(data, k, number_of_bootstraps)
+            find_reference_dispersion(data, k, number_of_bootstraps)
 
     gaps = np.zeros(shape=(k_max, 1))
     for k in range(1, k_max):

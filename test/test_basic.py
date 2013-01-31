@@ -45,7 +45,6 @@ class Test(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-
     def test_four_clusters_three_dimensions(self):
         """
         This does a full test, where we generate fake data for 4 clusters
@@ -74,7 +73,6 @@ class Test(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-
     def test_four_clusters_ten_dimensions(self):
         """
         This does a full test, where we generate fake data for 4 clusters
@@ -97,7 +95,6 @@ class Test(unittest.TestCase):
 #        plot_gaps(gaps, confidence, data.shape[1])
 
         self.assertEqual(expected, actual)
-
 
     def test_one_cluster_five_dimensions(self):
         """

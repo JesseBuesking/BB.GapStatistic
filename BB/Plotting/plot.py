@@ -1,9 +1,14 @@
+"""
+Methods for plotting the data.
+"""
+
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
 #need this for 3d plotting
 #noinspection PyUnresolvedReferences
 from mpl_toolkits.mplot3d import axes3d
+
 
 def plot_gaps(gaps, confidence, dimensions):
     """
@@ -58,7 +63,7 @@ def plot_clusters(data, point_map, centroids):
     if 3 < data.shape[1]:
         logging.error('Cannot plot more than 3 dimensions, '
                       'but {} were supplied.'
-        .format(data.shape[1]))
+                      .format(data.shape[1]))
         return
 
     # Creating colors randomly for each cluster.
@@ -79,6 +84,9 @@ def plot_clusters(data, point_map, centroids):
 
 
 def plot_1d(data, centroids, colors):
+    """
+    Plot the data supplied in 1 dimension.
+    """
     # Plotting the points.
     plt.scatter(data[:, 0], c=colors)
 
@@ -89,6 +97,9 @@ def plot_1d(data, centroids, colors):
 
 
 def plot_2d(data, centroids, colors):
+    """
+    Plot the data supplied in 2 dimension.
+    """
     # Plotting the points.
     plt.scatter(data[:, 0], data[:, 1], c=colors)
 
@@ -109,6 +120,9 @@ def plot_2d(data, centroids, colors):
 
 
 def plot_3d(data, centroids, colors):
+    """
+    Plot the data supplied in 3 dimension.
+    """
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     # Plotting the points.
@@ -116,7 +130,6 @@ def plot_3d(data, centroids, colors):
 
     # Plotting red circles to mark the cluster centroids.
     ax.scatter(centroids[:, 0], centroids[:, 1], centroids[:, 2],
-                marker='o', s=150, linewidths=2, c='red')
+               marker='o', s=150, linewidths=2, c='red')
 
     plt.show()
-
