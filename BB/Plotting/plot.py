@@ -67,10 +67,7 @@ def plot_clusters(data, point_map, centroids):
         return
 
     # Creating colors randomly for each cluster.
-    color_choices = [[round(np.random.uniform(0, 1), 1),
-                      round(np.random.uniform(0, 1), 1),
-                      round(np.random.uniform(0, 1),
-                            1)] for _ in range(centroids.shape[0])]
+    color_choices = generate_colors(centroids.shape[0])
 
     # Assigning colors to the points in the point map.
     colors = ([color_choices[i] for i in point_map])
@@ -125,6 +122,7 @@ def plot_3d(data, centroids, colors):
     """
     fig = plt.figure()
     ax = fig.gca(projection='3d')
+
     # Plotting the points.
     ax.scatter(data[:, 0], data[:, 1], data[:, 2], c=colors)
 
@@ -133,3 +131,41 @@ def plot_3d(data, centroids, colors):
                marker='o', s=150, linewidths=2, c='red')
 
     plt.show()
+
+
+def plot_data(*args):
+    """
+    Plots the data supplied.
+    """
+    num_args = len(args)
+
+    # Create a new plot.
+    fig = plt.figure(1)
+
+    # Not sure what I was doing here...
+    ax = fig.gca(projection='3d')
+
+    # Draw some grid lines.
+    ax.yaxis.grid(color='0.75', linestyle='dashed')
+    ax.xaxis.grid(color='0.75', linestyle='dashed')
+
+    color_choices = generate_colors(num_args)
+
+    # Circle the k corresponding to the largest gap, and annotate it.
+    for index, arg in enumerate(args):
+        ax.scatter(arg[:, 0], arg[:, 1], label='{}'.format(index),
+                   color=color_choices[index])
+
+    ax.legend()
+
+    plt.show()
+
+
+def generate_colors(n):
+    """
+    Generates n random colors.
+    """
+    colors = [[round(np.random.uniform(0, 1), 1),
+               round(np.random.uniform(0, 1), 1),
+               round(np.random.uniform(0, 1), 1)] for _ in range(n)]
+    return colors

@@ -7,6 +7,7 @@ import unittest
 import numpy as np
 from BB.GapStatistic import gap_statistic as gs
 from BB.GapStatistic.gap_statistic import default_clustering
+from BB.Plotting import plot
 from BB.Plotting.plot import plot_gaps, plot_clusters
 
 
@@ -37,7 +38,7 @@ class Test(unittest.TestCase):
         actual = gaps.argmax(axis=0)
 
 #        plot_gaps(gaps, confidence, data.shape[1])
-#        if 3 >= data.shape[1]:
+#        if 3 >= data.shape[1]:S
 #            k = gaps.argmax(axis=0)
 #            inertia, point_map, centroids = default_clustering(data, k, 10,
 #                                                               300)
@@ -113,3 +114,21 @@ class Test(unittest.TestCase):
 #        plot_gaps(gaps, confidence, cl1.shape[1])
 
         self.assertEqual(expected, actual)
+
+    def test_plot_multiple(self):
+
+        np.random.seed(1)
+
+        cl1 = np.random.normal(0, 1, (100, 2))
+        cl2 = np.random.normal(3, 1, (100, 2))
+        cl3 = np.random.normal(5, 1, (100, 2))
+
+        cl2[:, 1] += 1
+        cl3[:, 0] += 5
+
+        data = np.concatenate((cl1, cl2, cl3))
+
+        uniform = gs.generate_bounding_box_uniform_points(data)
+        pca_uniform = gs.generate_principal_components_box_uniform_points(data)
+
+        plot.plot_data(data, uniform, pca_uniform)

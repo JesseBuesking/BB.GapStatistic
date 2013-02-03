@@ -44,6 +44,18 @@ def generate_bounding_box_uniform_points(data):
     return uniform_points
 
 
+def generate_principal_components_box_uniform_points(data):
+    """
+    Generates a box aligned with the principal components of the data.
+    """
+    x = np.asmatrix(data)
+    _, _, vt = np.linalg.svd(x)
+    x_prime = x * vt.T
+    z_prime = generate_bounding_box_uniform_points(x_prime)
+    z = z_prime * vt
+    return z
+
+
 def find_reference_dispersion(data, k, number_of_bootstraps=10):
     """
     Finds the reference dispersion (and confidence) for the data supplied.
