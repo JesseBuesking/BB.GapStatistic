@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 #need this for 3d plotting
 #noinspection PyUnresolvedReferences
 from mpl_toolkits.mplot3d import axes3d
+from sklearn.decomposition import PCA
 
 
 def plot_gaps(gaps, confidence, dimensions):
@@ -78,6 +79,25 @@ def plot_clusters(data, point_map, centroids):
         plot_2d(data, centroids, colors)
     if 3 == data.shape[1]:
         plot_3d(data, centroids, colors)
+
+
+def plot_clusters_pca_reduced(data, point_map, centroids):
+    """
+    Plots the clusters defined by the point_map and centroids supplied,
+    coloring the points according to their associated clusters and marking
+    their centroids.
+    """
+    # Reducing the dimensionality of the centroids to 2 dimensions.
+    reduced_data = PCA(n_components=2).fit_transform(data)
+    reduced_centroids = PCA(n_components=2).fit_transform(centroids)
+
+    # Creating colors randomly for each cluster.
+    color_choices = generate_colors(reduced_centroids.shape[0])
+
+    # Assigning colors to the points in the point map.
+    colors = ([color_choices[i] for i in point_map])
+
+    plot_2d(reduced_data, reduced_centroids, colors)
 
 
 def plot_1d(data, centroids, colors):
