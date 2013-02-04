@@ -148,13 +148,23 @@ def plot_data(*args):
     # Draw some grid lines.
     ax.yaxis.grid(color='0.75', linestyle='dashed')
     ax.xaxis.grid(color='0.75', linestyle='dashed')
+#    axes3d.Axes3D.view_init(ax, 90, -90)
 
     color_choices = generate_colors(num_args)
 
     # Circle the k corresponding to the largest gap, and annotate it.
     for index, arg in enumerate(args):
-        ax.scatter(arg[:, 0], arg[:, 1], label='{}'.format(index),
-                   color=color_choices[index])
+        arg = np.array(arg, dtype=np.float32)
+        if 1 == arg.shape[1]:
+            ax.scatter(arg[:, 0], label='{}'.format(index),
+                       color=color_choices[index])
+        if 2 == arg.shape[1]:
+            ax.scatter(arg[:, 0], arg[:, 1], label='{}'.format(index),
+                       color=color_choices[index])
+        if 3 == arg.shape[1]:
+            ax.scatter(arg[:, 0], arg[:, 1], arg[:, 2],
+                       label='{}'.format(index),
+                       color=color_choices[index])
 
     ax.legend()
 

@@ -62,7 +62,8 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
     """
     dispersions = np.zeros(shape=(number_of_bootstraps, 1))
     for run_number in range(number_of_bootstraps):
-        uniform_points = generate_bounding_box_uniform_points(data)
+        uniform_points = generate_principal_components_box_uniform_points(data)
+#        uniform_points = generate_bounding_box_uniform_points(data)
         dispersion, _, _ = default_clustering(uniform_points, k, 10, 500)
 
         if 0 == dispersion:
