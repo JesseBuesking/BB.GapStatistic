@@ -62,8 +62,8 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
     """
     dispersions = np.zeros(shape=(number_of_bootstraps, 1))
     for run_number in range(number_of_bootstraps):
-        uniform_points = generate_principal_components_box_uniform_points(data)
-#        uniform_points = generate_bounding_box_uniform_points(data)
+#        uniform_points = generate_principal_components_box_uniform_points(data)
+        uniform_points = generate_bounding_box_uniform_points(data)
         dispersion, _, _ = default_clustering(uniform_points, k, 10, 500)
 
         if 0 == dispersion:
@@ -114,3 +114,58 @@ def gap_statistic(data, k_max, number_of_bootstraps):
         confidence[k, 1] = stddev_ref_dispersions[k]
 
     return gaps, confidence
+
+
+def whiten(data: []):
+    """
+    Takes the data and `whitens` it. (scales the data)
+
+    http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq
+    .whiten.html#scipy.cluster.vq.whiten
+    """
+
+    logging.info('whitening input data')
+    if 0 == len(data):
+        logging.error('unable to whiten the data supplied since there are 0 '
+                      'entries')
+        raise Exception('unable to whiten the data supplied since there are 0 '
+                      'entries')
+
+    totals = dict()
+    counter = 0
+    for row in data:
+        counter += 1
+        for index, col in enumerate(row):
+            if index not in totals:
+                totals[index] = col
+            else:
+                totals[index] += col
+
+    averages = dict()
+    for key in totals.keys():
+        averages[key] = totals[key] / counter
+
+    standard_deviations = dict()
+    for row in data:
+        for index, col in enumerate(row):
+            val = (col - averages[index]) ** 2
+            if index not in standard_deviations:
+                standard_deviations[index] = val
+            else:
+                standard_deviations[index] += val
+
+    for key in standard_deviations.keys():
+        standard_deviations[key] = (standard_deviations[key] / (counter - 1))\
+                                   ** .5
+
+    for row_index, row in enumerate(data):
+        for col_index, col in enumerate(row):
+            if standard_deviations[col_index] == 0:
+                data[row_index][col_index] = 0
+            else:
+                data[row_index][col_index] = (col - averages[col_index]) / \
+                                             standard_deviations[col_index]
+    logging.info('finished whitening input data')
+
+    return data, standard_deviations, averages
+

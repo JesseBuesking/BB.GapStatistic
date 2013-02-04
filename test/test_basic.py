@@ -7,7 +7,8 @@ import unittest
 import numpy as np
 from sklearn.decomposition import PCA
 from BB.GapStatistic import gap_statistic as gs
-from BB.GapStatistic.gap_statistic import default_clustering
+from BB.GapStatistic.gap_statistic import default_clustering, whiten
+from BB.InputOutput import read
 from BB.Plotting import plot
 from BB.Plotting.plot import plot_gaps, plot_clusters
 
@@ -199,3 +200,20 @@ class Test(unittest.TestCase):
 #        # Plot the clusters made on the pca reduced data,
 #        # on the original data.
 #        plot.plot_clusters(data, point_map, original_centroids)
+
+    def test_real_data(self):
+        data = read.read_to_numpy_array('data/real_data.csv', 0)
+#        data, _, _ = whiten(data)
+#        plot.plot_data(PCA(n_components=2).fit_transform(data))
+
+        gaps, confidence = gs.gap_statistic(data, 100, 10)
+
+        plot_gaps(gaps, confidence, data.shape[1])
+
+#        data_subset = data[:1000,:]
+#        print(data_subset.shape[0])
+#        data = data_subset
+#
+#        inertia, point_map, centroids = default_clustering(data, 60, 10, 300)
+
+#        plot.plot_clusters_pca_reduced(data, point_map, centroids)
