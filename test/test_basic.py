@@ -1,6 +1,7 @@
 """
 A couple of simple unit tests.
 """
+import logging
 
 import unittest
 
@@ -202,10 +203,15 @@ class Test(unittest.TestCase):
 #        plot.plot_clusters(data, point_map, original_centroids)
 
     def test_real_data(self):
+        logging.basicConfig(level=logging.INFO)
+        logging.StreamHandler()
+        logging.info('Starting the test')
+
         data = read.read_to_numpy_array('data/real_data.csv', 0)
 #        data, _, _ = whiten(data)
 #        plot.plot_data(PCA(n_components=2).fit_transform(data))
 
+        logging.info('Starting the gap statistic')
         gaps, confidence = gs.gap_statistic(data, 100, 10)
 
         plot_gaps(gaps, confidence, data.shape[1])

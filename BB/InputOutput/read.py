@@ -9,6 +9,7 @@ def read_to_numpy_array(input_path, data_skip_lines):
     """
     Reads the input file, skipping over the first several lines if needed.
     """
+    logging.info('Reading the input file into a numpy array')
     return np.loadtxt(open(input_path.strip()),delimiter=",",
                       skiprows=data_skip_lines)
 #    reader = csv.reader(open(input_path.strip()))

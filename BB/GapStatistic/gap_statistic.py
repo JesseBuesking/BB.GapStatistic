@@ -25,6 +25,7 @@ def generate_bounding_box_uniform_points(data):
     """
     Generates a bounding box of uniform points around the data provided.
     """
+    logging.info('Generating a bounding box.')
     number_of_data_points = data.shape[0]
     number_of_dimensions = data.shape[1]
 
@@ -48,6 +49,7 @@ def generate_principal_components_box_uniform_points(data):
     """
     Generates a box aligned with the principal components of the data.
     """
+    logging.info('Using pca to generate bounding box')
     x = np.asmatrix(data)
     _, _, vt = np.linalg.svd(x)
     x_prime = x * vt.T
@@ -61,7 +63,10 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
     Finds the reference dispersion (and confidence) for the data supplied.
     """
     dispersions = np.zeros(shape=(number_of_bootstraps, 1))
+
+    logging.info('Finding {} reference dispersions'.format(number_of_bootstraps))
     for run_number in range(number_of_bootstraps):
+        logging.info('At iteration {}'.format(run_number))
 #        uniform_points = generate_principal_components_box_uniform_points(data)
         uniform_points = generate_bounding_box_uniform_points(data)
         dispersion, _, _ = default_clustering(uniform_points, k, 10, 500)
@@ -81,35 +86,43 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
     return mean_dispersions, stddev_dispersions
 
 
-def gap_statistic(data, k_max, number_of_bootstraps):
+def gap_statistic(data, min_k, max_k, number_of_bootstraps):
     """
     Calculates the gap statistic for the data supplied.
     """
-    actual_dispersions = np.zeros(shape=(k_max, 1))
-    mean_ref_dispersions = np.zeros(shape=(k_max, 1))
-    stddev_ref_dispersions = np.zeros(shape=(k_max, 1))
-    for k in range(1, k_max):
-        # add the current k's dispersion
+    actual_dispersions = np.zeros(shape=(max_k, 1))
+    mean_ref_dispersions = np.zeros(shape=(max_k, 1))
+    stddev_ref_dispersions = np.zeros(shape=(max_k, 1))
+
+    logging.info('Running gap statistic for k between {} and {}'.format(min_k,
+                 max_k))
+    for k in range(min_k, max_k):
+        logging.info('At k = {}'.format(k))
+
+        # Add the current k's dispersion.
         actual_dispersion, _, _ = default_clustering(data, k, 10, 500)
+        logging.info('Actual dispersion found')
 
         if 0 == actual_dispersion:
             logging.warning(
-                '[Actual Dispersion] Cannot take the log of 0 for k = {}.'
+                '[Actual Dispersion] Cannot take the log of 0 for k = {}'
                 .format(k))
             continue
 
         actual_dispersions[k] = np.log(actual_dispersion)
 
-        # add the mean reference dispersion
+        # Add the mean reference dispersion.
         mean_ref_dispersions[k], stddev_ref_dispersions[k] =\
             find_reference_dispersion(data, k, number_of_bootstraps)
 
-    gaps = np.zeros(shape=(k_max, 1))
-    for k in range(1, k_max):
+    logging.info('Finding actual gaps')
+    gaps = np.zeros(shape=(max_k, 1))
+    for k in range(min_k, max_k):
         gaps[k] = mean_ref_dispersions[k] - actual_dispersions[k]
 
-    confidence = np.zeros(shape=(k_max, 2))
-    for k in range(k_max):
+    logging.info('Finding confidence values')
+    confidence = np.zeros(shape=(max_k, 2))
+    for k in range(min_k, max_k):
         confidence[k, 0] = stddev_ref_dispersions[k]
         confidence[k, 1] = stddev_ref_dispersions[k]
 
@@ -124,7 +137,7 @@ def whiten(data: []):
     .whiten.html#scipy.cluster.vq.whiten
     """
 
-    logging.info('whitening input data')
+    logging.info('Whitening input data')
     if 0 == len(data):
         logging.error('unable to whiten the data supplied since there are 0 '
                       'entries')
@@ -165,7 +178,7 @@ def whiten(data: []):
             else:
                 data[row_index][col_index] = (col - averages[col_index]) / \
                                              standard_deviations[col_index]
-    logging.info('finished whitening input data')
+    logging.info('Finished whitening input data')
 
     return data, standard_deviations, averages
 

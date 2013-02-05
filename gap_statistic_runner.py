@@ -1,48 +1,57 @@
 """
 A gap statistic runner.
 """
+import logging
 
-import numpy as np
-from BB.GapStatistic.gap_statistic import gap_statistic, default_clustering
-from BB.Plotting.plot import plot_gaps, plot_clusters
-
-
-def generate_fake_data():
-    """
-    Generates some simple fake data to run the gap statistic against.
-    """
-    np.random.seed(1)
-
-    cl1 = np.random.normal(0, 1, (20, 2))
-    cl2 = np.random.normal(3, 1, (20, 2))
-    cl3 = np.random.normal(0, 1, (20, 2))
-
-    cl2[:, 1] += 2
-    cl3[:, 0] += 5
-
-    fake_data = np.concatenate((cl1, cl2, cl3))
-
-    return fake_data
+from BB.ArgumentParsing.parse import parse_arguments
+from BB.GapStatistic.gap_statistic import gap_statistic, default_clustering, whiten
+from BB.InputOutput import read
+from BB.Number import number
+from BB.Plotting.plot import plot_gaps, plot_clusters_pca_reduced
 
 
 def main():
     """
     The main method.
     """
-    k_max = 10 + 1
-    number_of_bootstraps = 10
-    data = generate_fake_data()
-    gaps, confidence = gap_statistic(data, k_max, number_of_bootstraps)
+    logging.basicConfig(level=logging.INFO)
+    logging.StreamHandler()
+
+    # Parse dem arrrrrgs!
+    args = parse_arguments()
+
+    # Read the input file in.
+    skip_lines = number.to_int(args.input_file_skip_lines)
+    data = read.read_to_numpy_array(args.input_file, skip_lines)
+
+    if args.whiten is True:
+        data = whiten(data)
+
+    min_k = number.to_int(args.min_k)
+    if min_k is None:
+        raise Exception('The min_k argument supplied is invalid. "{}"'
+                        .format(min_k))
+
+    max_k = number.to_int(args.max_k)
+    if max_k is None:
+        raise Exception('The max_k argument supplied is invalid. "{}"'
+                        .format(max_k))
+
+    bootstraps = number.to_int(args.bootstraps)
+    if bootstraps is None:
+        raise Exception('The bootstraps argument supplied is invalid. "{}"'
+                        .format(bootstraps))
+
+    # Find the gaps and confidence intervals.
+    gaps, confidence = gap_statistic(data, min_k, max_k, bootstraps)
 
     # Plot the gaps.
     plot_gaps(gaps, confidence, data.shape[1])
 
-    # Plot the clusters (using the k chosen as the max).
-    max_k = gaps.argmax(axis=0)
-    if 3 >= data.shape[1]:
-        _, point_map, centroids = default_clustering(data, max_k, 10,
-                                                           300)
-        plot_clusters(data, point_map, centroids)
+    if args.plot_clusters is True:
+        optimal_k = gaps.argmax(axis=0)
+        _, point_map, centroids = default_clustering(data, optimal_k, 10, 300)
+        plot_clusters_pca_reduced(data, point_map, centroids)
 
 if __name__ == "__main__":
     main()
