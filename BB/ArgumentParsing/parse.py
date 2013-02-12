@@ -35,6 +35,9 @@ def parse_arguments():
                         help='Plot the clusters in 2 dimensions when done, '
                              'using the optimal k that\'s found.')
 
+    parser.add_argument('--log_file', dest='log_file', action='store',
+                        default=None, help='The log file to write to.')
+
     args = parser.parse_args()
 
     return args

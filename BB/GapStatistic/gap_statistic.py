@@ -1,11 +1,15 @@
 """
 Methods for calculating the gap statistic.
 """
+import datetime
 
 import logging
 from sklearn.cluster import KMeans
 import numpy as np
 
+
+MINIMUMS = None
+MAXIMUMS = None
 
 def default_clustering(data, k, individual_runs=10, iterations=300):
     """
@@ -21,26 +25,48 @@ def default_clustering(data, k, individual_runs=10, iterations=300):
     return estimator.inertia_, estimator.labels_, estimator.cluster_centers_
 
 
+def generate_uniform_distribution(data_shape, maximums, minimums):
+    """
+    Generates a uniform distribution.
+    """
+    uniform_points = np.zeros(data_shape)
+    for dimension in range(data_shape[1]):
+        uniform_points[:, dimension] = np.random.uniform(minimums[dimension],
+                                                         maximums[dimension],
+                                                         data_shape[0])
+    return uniform_points
+
+
+def find_minimums_and_maximums(data):
+    """
+    Finds the minimum and maximum values of each dimension in the data matrix
+     supplied.
+    """
+    minimums = np.zeros(shape=((data.shape[1]), 1))
+    maximums = np.zeros(shape=((data.shape[1]), 1))
+
+    for dimension in range(data.shape[1]):
+        minimums[dimension] = np.min(data[:, dimension])
+        maximums[dimension] = np.max(data[:, dimension])
+
+    return maximums, minimums
+
+
 def generate_bounding_box_uniform_points(data):
     """
     Generates a bounding box of uniform points around the data provided.
     """
+    global MAXIMUMS, MINIMUMS
     logging.info('Generating a bounding box.')
-    number_of_data_points = data.shape[0]
-    number_of_dimensions = data.shape[1]
 
-    minimums = np.zeros(shape=(number_of_dimensions, 1))
-    maximums = np.zeros(shape=(number_of_dimensions, 1))
+    # using global references so that we don't have to re-find the maximum
+    # and minimum values of each dimension every time we want to generate
+    # another reference distribution
+#    if MAXIMUMS is None and MINIMUMS is None: #TODO do this using an object
+    MAXIMUMS, MINIMUMS = find_minimums_and_maximums(data)
 
-    for dimension in range(number_of_dimensions):
-        minimums[dimension] = np.min(data[:, dimension])
-        maximums[dimension] = np.max(data[:, dimension])
-
-    uniform_points = np.zeros(data.shape)
-    for dimension in range(number_of_dimensions):
-        uniform_points[:, dimension] = np.random.uniform(minimums[dimension],
-                                                         maximums[dimension],
-                                                         number_of_data_points)
+    uniform_points = generate_uniform_distribution(data.shape, MAXIMUMS,
+                                                   MINIMUMS)
 
     return uniform_points
 
@@ -51,7 +77,7 @@ def generate_principal_components_box_uniform_points(data):
     """
     logging.info('Using pca to generate bounding box')
     x = np.asmatrix(data)
-    _, _, vt = np.linalg.svd(x)
+    _, _, vt = np.linalg.svd(x, full_matrices=False)
     x_prime = x * vt.T
     z_prime = generate_bounding_box_uniform_points(x_prime)
     z = z_prime * vt
@@ -66,10 +92,11 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
 
     logging.info('Finding {} reference dispersions'.format(number_of_bootstraps))
     for run_number in range(number_of_bootstraps):
+        start = datetime.datetime.utcnow()
         logging.info('At iteration {}'.format(run_number))
 #        uniform_points = generate_principal_components_box_uniform_points(data)
         uniform_points = generate_bounding_box_uniform_points(data)
-        dispersion, _, _ = default_clustering(uniform_points, k, 10, 500)
+        dispersion, _, _ = default_clustering(uniform_points, k, 1, 500)
 
         if 0 == dispersion:
             logging.warning(
@@ -78,6 +105,8 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
             continue
 
         dispersions[run_number] = np.log(dispersion)
+        end = datetime.datetime.utcnow()
+        logging.info('Time for last reference set: {}'.format((end - start)))
 
     mean_dispersions = np.mean(dispersions)
     stddev_dispersions = np.std(dispersions) / np.sqrt(1 + 1 /
@@ -97,6 +126,7 @@ def gap_statistic(data, min_k, max_k, number_of_bootstraps):
     logging.info('Running gap statistic for k between {} and {}'.format(min_k,
                  max_k))
     for k in range(min_k, max_k):
+        start = datetime.datetime.utcnow()
         logging.info('At k = {}'.format(k))
 
         # Add the current k's dispersion.
@@ -114,6 +144,8 @@ def gap_statistic(data, min_k, max_k, number_of_bootstraps):
         # Add the mean reference dispersion.
         mean_ref_dispersions[k], stddev_ref_dispersions[k] =\
             find_reference_dispersion(data, k, number_of_bootstraps)
+        end = datetime.datetime.utcnow()
+        logging.info('Time for last k: {}'.format((end - start)))
 
     logging.info('Finding actual gaps')
     gaps = np.zeros(shape=(max_k, 1))

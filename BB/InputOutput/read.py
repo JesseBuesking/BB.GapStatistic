@@ -9,9 +9,13 @@ def read_to_numpy_array(input_path, data_skip_lines):
     """
     Reads the input file, skipping over the first several lines if needed.
     """
+    start = datetime.datetime.utcnow()
     logging.info('Reading the input file into a numpy array')
-    return np.loadtxt(open(input_path.strip()),delimiter=",",
+    data = np.loadtxt(open(input_path.strip()),delimiter=",",
                       skiprows=data_skip_lines)
+    end = datetime.datetime.utcnow()
+    logging.info('read {} in: {}'.format(input_path, (end - start)))
+    return data
 #    reader = csv.reader(open(input_path.strip()))
 #
 #    num_cols = 0

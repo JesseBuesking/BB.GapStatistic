@@ -1,14 +1,16 @@
 """
 A couple of simple unit tests.
 """
+import csv
 import logging
 
 import unittest
 
 import numpy as np
+from numpy.core.multiarray import arange
 from sklearn.decomposition import PCA
 from BB.GapStatistic import gap_statistic as gs
-from BB.GapStatistic.gap_statistic import default_clustering, whiten
+from BB.GapStatistic.gap_statistic import default_clustering, whiten, generate_uniform_distribution, find_reference_dispersion
 from BB.InputOutput import read
 from BB.Plotting import plot
 from BB.Plotting.plot import plot_gaps, plot_clusters
@@ -35,7 +37,7 @@ class Test(unittest.TestCase):
 #
 #        data = np.concatenate((cl1, cl2, cl3))
 #
-#        gaps, confidence = gs.gap_statistic(data, 10, 10)
+#        gaps, confidence = gs.gap_statistic(data, 1, 10, 10)
 #
 #        expected = 3
 #        actual = gaps.argmax(axis=0)
@@ -63,7 +65,7 @@ class Test(unittest.TestCase):
 #
 #        data = np.concatenate((cl1, cl2, cl3, cl4))
 #
-#        gaps, confidence = gs.gap_statistic(data, 10, 10)
+#        gaps, confidence = gs.gap_statistic(data, 1, 10, 10)
 #
 #        expected = 4
 #        actual = gaps.argmax(axis=0)
@@ -96,7 +98,7 @@ class Test(unittest.TestCase):
 #
 #        plot.plot_clusters_pca_reduced(data, point_map, centroids)
 #
-#        gaps, confidence = gs.gap_statistic(data, 10, 10)
+#        gaps, confidence = gs.gap_statistic(data, 1, 10, 10)
 #
 #        expected = 4
 #        actual = gaps.argmax(axis=0)
@@ -117,7 +119,7 @@ class Test(unittest.TestCase):
 #
 #        plot.plot_clusters_pca_reduced(cl1, point_map, centroids)
 #
-#        gaps, confidence = gs.gap_statistic(cl1, 10, 10)
+#        gaps, confidence = gs.gap_statistic(cl1, 1, 10, 10)
 #
 #        expected = 1
 #        actual = gaps.argmax(axis=0)
@@ -125,7 +127,7 @@ class Test(unittest.TestCase):
 #        plot_gaps(gaps, confidence, cl1.shape[1])
 #
 #        self.assertEqual(expected, actual)
-
+#
 #    def test_plot_multiple(self):
 #        """
 #        Tests plotting multiple plots on one graph.
@@ -201,21 +203,21 @@ class Test(unittest.TestCase):
 #        # Plot the clusters made on the pca reduced data,
 #        # on the original data.
 #        plot.plot_clusters(data, point_map, original_centroids)
-
-    def test_real_data(self):
-        logging.basicConfig(level=logging.INFO)
-        logging.StreamHandler()
-        logging.info('Starting the test')
-
-        data = read.read_to_numpy_array('data/real_data.csv', 0)
-#        data, _, _ = whiten(data)
-#        plot.plot_data(PCA(n_components=2).fit_transform(data))
-
-        logging.info('Starting the gap statistic')
-        gaps, confidence = gs.gap_statistic(data, 100, 10)
-
-        plot_gaps(gaps, confidence, data.shape[1])
-
+#
+#    def test_real_data(self):
+#        logging.basicConfig(level=logging.INFO)
+#        logging.StreamHandler()
+#        logging.info('Starting the test')
+#
+#        data = read.read_to_numpy_array('data/real_data.csv', 0)
+##        data, _, _ = whiten(data)
+##        plot.plot_data(PCA(n_components=2).fit_transform(data))
+#
+#        logging.info('Starting the gap statistic')
+#        gaps, confidence = gs.gap_statistic(data, 100, 10)
+#
+#        plot_gaps(gaps, confidence, data.shape[1])
+#
 #        data_subset = data[:1000,:]
 #        print(data_subset.shape[0])
 #        data = data_subset
@@ -223,3 +225,42 @@ class Test(unittest.TestCase):
 #        inertia, point_map, centroids = default_clustering(data, 60, 10, 300)
 
 #        plot.plot_clusters_pca_reduced(data, point_map, centroids)
+
+
+    def test_ref_dispersions(self):
+        number_of_points = 100
+        dimensions = 2
+        number_of_clusters = 3
+
+        range_max = 100
+#        dispersions = np.zeros(shape=(range_max, 1))
+        mean_ref_dispersions = np.zeros(shape=(range_max, 1))
+        mean_differences = np.zeros(shape=(range_max, 1))
+        stddev_ref_dispersions = np.zeros(shape=(range_max, 1))
+        stddev_differences = np.zeros(shape=(range_max, 1))
+
+        shape = (number_of_points, dimensions)
+        c = csv.writer(open("C:\\Users\\JesseB\\Desktop\\disp_test_{}.csv"
+                            .format(number_of_points), "w"),
+                       delimiter=',')
+        data = np.zeros(shape=shape)
+        for row in range(number_of_points):
+            for col in range(dimensions):
+                data[row][col] = row % 2
+
+        for iteration in range(1, range_max):
+            mean_ref_dispersions[iteration], stddev_ref_dispersions[iteration]\
+            =\
+                find_reference_dispersion(data, iteration,
+                                          10000)
+            mean_differences[iteration] = mean_ref_dispersions[iteration] - \
+                                          mean_ref_dispersions[iteration - 1]
+
+            stddev_differences[iteration] = stddev_ref_dispersions[iteration]\
+                                            - stddev_ref_dispersions[
+                                              iteration - 1]
+            c.writerow([iteration,
+                        mean_ref_dispersions[iteration][0],
+                        mean_differences[iteration][0],
+                        stddev_ref_dispersions[iteration][0],
+                        stddev_differences[iteration][0]])
