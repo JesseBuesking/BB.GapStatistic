@@ -7,7 +7,7 @@ from BB.ArgumentParsing.parse import parse_arguments
 from BB.GapStatistic.gap_statistic import gap_statistic, default_clustering, whiten
 from BB.InputOutput import read
 from BB.Number import number
-from BB.Plotting.plot import plot_gaps, plot_clusters_pca_reduced
+#from BB.Plotting.plot import plot_gaps, plot_clusters_pca_reduced
 
 
 def main():
@@ -45,13 +45,13 @@ def main():
     # Find the gaps and confidence intervals.
     gaps, confidence = gap_statistic(data, min_k, max_k, bootstraps)
 
-    # Plot the gaps.
-    plot_gaps(gaps, confidence, data.shape[1])
-
-    if args.plot_clusters is True:
-        optimal_k = gaps.argmax(axis=0)
-        _, point_map, centroids = default_clustering(data, optimal_k, 10, 300)
-        plot_clusters_pca_reduced(data, point_map, centroids)
+#    # Plot the gaps.
+#    plot_gaps(gaps, confidence, data.shape[1])
+#
+#    if args.plot_clusters is True:
+#        optimal_k = gaps.argmax(axis=0)
+#        _, point_map, centroids = default_clustering(data, optimal_k, 10, 300)
+#        plot_clusters_pca_reduced(data, point_map, centroids)
 
 if __name__ == "__main__":
     main()

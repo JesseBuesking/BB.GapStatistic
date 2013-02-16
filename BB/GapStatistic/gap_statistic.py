@@ -1,6 +1,7 @@
 """
 Methods for calculating the gap statistic.
 """
+import datetime
 
 import logging
 from sklearn.cluster import KMeans
@@ -12,7 +13,7 @@ def default_clustering(data, k, individual_runs=10, iterations=300):
     The default clustering method.
     """
     estimator = KMeans(init='k-means++',
-                       precompute_distances=True,
+                       precompute_distances=False,
                        n_clusters=k,
                        n_init=individual_runs,
                        max_iter=iterations)
@@ -66,10 +67,11 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
 
     logging.info('Finding {} reference dispersions'.format(number_of_bootstraps))
     for run_number in range(number_of_bootstraps):
+        start = datetime.datetime.utcnow()
         logging.info('At iteration {}'.format(run_number))
 #        uniform_points = generate_principal_components_box_uniform_points(data)
         uniform_points = generate_bounding_box_uniform_points(data)
-        dispersion, _, _ = default_clustering(uniform_points, k, 10, 500)
+        dispersion, _, _ = default_clustering(uniform_points, k, 1, 500)
 
         if 0 == dispersion:
             logging.warning(
@@ -78,6 +80,8 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
             continue
 
         dispersions[run_number] = np.log(dispersion)
+        end = datetime.datetime.utcnow()
+        logging.info('reference\'s duration: {}'.format((end - start)))
 
     mean_dispersions = np.mean(dispersions)
     stddev_dispersions = np.std(dispersions) / np.sqrt(1 + 1 /
@@ -90,13 +94,14 @@ def gap_statistic(data, min_k, max_k, number_of_bootstraps):
     """
     Calculates the gap statistic for the data supplied.
     """
-    actual_dispersions = np.zeros(shape=(max_k, 1))
-    mean_ref_dispersions = np.zeros(shape=(max_k, 1))
-    stddev_ref_dispersions = np.zeros(shape=(max_k, 1))
+    actual_dispersions = np.zeros(shape=(max_k + 1, 1))
+    mean_ref_dispersions = np.zeros(shape=(max_k + 1, 1))
+    stddev_ref_dispersions = np.zeros(shape=(max_k + 1, 1))
 
     logging.info('Running gap statistic for k between {} and {}'.format(min_k,
-                 max_k))
-    for k in range(min_k, max_k):
+                                                                        max_k + 1))
+    start = datetime.datetime.utcnow()
+    for k in range(min_k, max_k + 1):
         logging.info('At k = {}'.format(k))
 
         # Add the current k's dispersion.
@@ -114,6 +119,9 @@ def gap_statistic(data, min_k, max_k, number_of_bootstraps):
         # Add the mean reference dispersion.
         mean_ref_dispersions[k], stddev_ref_dispersions[k] =\
             find_reference_dispersion(data, k, number_of_bootstraps)
+
+    end = datetime.datetime.utcnow()
+    logging.info('k\'s duration: {}'.format((end - start)))
 
     logging.info('Finding actual gaps')
     gaps = np.zeros(shape=(max_k, 1))
