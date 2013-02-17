@@ -106,7 +106,11 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
 
         dispersions[run_number] = np.log(dispersion)
         end = datetime.datetime.utcnow()
+<<<<<<< HEAD
+        logging.info('reference\'s duration: {}'.format((end - start)))
+=======
         logging.info('Time for last reference set: {}'.format((end - start)))
+>>>>>>> 655a15714dcb7e2a01c0e1e46ef339364db9ba3f
 
     mean_dispersions = np.mean(dispersions)
     stddev_dispersions = np.std(dispersions) / np.sqrt(1 + 1 /
@@ -124,9 +128,15 @@ def gap_statistic(data, min_k, max_k, number_of_bootstraps):
     stddev_ref_dispersions = np.zeros(shape=(max_k + 1, 1))
 
     logging.info('Running gap statistic for k between {} and {}'.format(min_k,
+<<<<<<< HEAD
                                                                         max_k + 1))
+    start = datetime.datetime.utcnow()
     for k in range(min_k, max_k + 1):
+=======
+                 max_k))
+    for k in range(min_k, max_k):
         start = datetime.datetime.utcnow()
+>>>>>>> 655a15714dcb7e2a01c0e1e46ef339364db9ba3f
         logging.info('At k = {}'.format(k))
 
         # Add the current k's dispersion.
@@ -146,6 +156,9 @@ def gap_statistic(data, min_k, max_k, number_of_bootstraps):
             find_reference_dispersion(data, k, number_of_bootstraps)
         end = datetime.datetime.utcnow()
         logging.info('Time for last k: {}'.format((end - start)))
+
+    end = datetime.datetime.utcnow()
+    logging.info('k\'s duration: {}'.format((end - start)))
 
     logging.info('Finding actual gaps')
     gaps = np.zeros(shape=(max_k, 1))

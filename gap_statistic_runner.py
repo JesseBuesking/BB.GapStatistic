@@ -1,6 +1,7 @@
 """
 A gap statistic runner.
 """
+import datetime
 import logging
 
 from BB.ArgumentParsing.parse import parse_arguments
@@ -14,11 +15,16 @@ def main():
     """
     The main method.
     """
-    logging.basicConfig(level=logging.INFO)
-    logging.StreamHandler()
-
     # Parse dem arrrrrgs!
     args = parse_arguments()
+
+    if args.log_file is None:
+        logging.StreamHandler()
+    else:
+        logging.basicConfig(level=logging.INFO)
+        logging.getLogger().addHandler(logging.FileHandler(args.log_file))
+
+    start = datetime.datetime.utcnow()
 
     # Read the input file in.
     skip_lines = number.to_int(args.input_file_skip_lines)
@@ -52,6 +58,9 @@ def main():
 #        optimal_k = gaps.argmax(axis=0)
 #        _, point_map, centroids = default_clustering(data, optimal_k, 10, 300)
 #        plot_clusters_pca_reduced(data, point_map, centroids)
+
+    end = datetime.datetime.utcnow()
+    logging.info('Total duration: {}'.format((end - start)))
 
 if __name__ == "__main__":
     main()
