@@ -6,10 +6,12 @@ import datetime
 import logging
 from sklearn.cluster import KMeans
 import numpy as np
+from BB.Statistic.incremental_statistic import IncrementalStatistic
 
 
 MINIMUMS = None
 MAXIMUMS = None
+
 
 def default_clustering(data, k, individual_runs=10, iterations=300):
     """
@@ -62,7 +64,7 @@ def generate_bounding_box_uniform_points(data):
     # using global references so that we don't have to re-find the maximum
     # and minimum values of each dimension every time we want to generate
     # another reference distribution
-#    if MAXIMUMS is None and MINIMUMS is None: #TODO do this using an object
+    #    if MAXIMUMS is None and MINIMUMS is None:#TODO do this using an object
     MAXIMUMS, MINIMUMS = find_minimums_and_maximums(data)
 
     uniform_points = generate_uniform_distribution(data.shape, MAXIMUMS,
@@ -88,13 +90,15 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
     """
     Finds the reference dispersion (and confidence) for the data supplied.
     """
-    dispersions = np.zeros(shape=(number_of_bootstraps, 1))
+    incremental_statistic = IncrementalStatistic()
 
-    logging.info('Finding {} reference dispersions'.format(number_of_bootstraps))
+    logging.info(
+        'Finding {} reference dispersions'.format(number_of_bootstraps))
     for run_number in range(number_of_bootstraps):
         start = datetime.datetime.utcnow()
         logging.info('At iteration {}'.format(run_number))
-#        uniform_points = generate_principal_components_box_uniform_points(data)
+        #        uniform_points =
+        # generate_principal_components_box_uniform_points(data)
         uniform_points = generate_bounding_box_uniform_points(data)
         dispersion, _, _ = default_clustering(uniform_points, k, 1, 500)
 
@@ -104,15 +108,14 @@ def find_reference_dispersion(data, k, number_of_bootstraps=10):
                 'number = {}.'.format(run_number))
             continue
 
-        dispersions[run_number] = np.log(dispersion)
+        incremental_statistic.add_value(np.log(dispersion))
         end = datetime.datetime.utcnow()
         logging.info('Time for last reference set: {}'.format((end - start)))
 
-    mean_dispersions = np.mean(dispersions)
-    stddev_dispersions = np.std(dispersions) / np.sqrt(1 + 1 /
-                                                       number_of_bootstraps)
+    stddev_dispersions = incremental_statistic.get_standard_deviation() / \
+                         np.sqrt(1 + 1 / number_of_bootstraps)
 
-    return mean_dispersions, stddev_dispersions
+    return incremental_statistic.get_mean(), stddev_dispersions
 
 
 def gap_statistic(data, min_k, max_k, number_of_bootstraps):
@@ -124,7 +127,8 @@ def gap_statistic(data, min_k, max_k, number_of_bootstraps):
     stddev_ref_dispersions = np.zeros(shape=(max_k + 1, 1))
 
     logging.info('Running gap statistic for k between {} and {}'.format(min_k,
-                                                                        max_k + 1))
+                                                                        max_k
+                                                                        + 1))
     for k in range(min_k, max_k + 1):
         start = datetime.datetime.utcnow()
         logging.info('At k = {}'.format(k))
@@ -174,7 +178,7 @@ def whiten(data: []):
         logging.error('unable to whiten the data supplied since there are 0 '
                       'entries')
         raise Exception('unable to whiten the data supplied since there are 0 '
-                      'entries')
+                        'entries')
 
     totals = dict()
     counter = 0
@@ -200,17 +204,16 @@ def whiten(data: []):
                 standard_deviations[index] += val
 
     for key in standard_deviations.keys():
-        standard_deviations[key] = (standard_deviations[key] / (counter - 1))\
-                                   ** .5
+        standard_deviations[key] =\
+            (standard_deviations[key] / (counter - 1)) ** .5
 
     for row_index, row in enumerate(data):
         for col_index, col in enumerate(row):
             if standard_deviations[col_index] == 0:
                 data[row_index][col_index] = 0
             else:
-                data[row_index][col_index] = (col - averages[col_index]) / \
-                                             standard_deviations[col_index]
+                data[row_index][col_index] = (col - averages[col_index]) /\
+                    standard_deviations[col_index]
     logging.info('Finished whitening input data')
 
     return data, standard_deviations, averages
-

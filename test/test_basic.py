@@ -70,12 +70,12 @@ class Test(unittest.TestCase):
 #        expected = 4
 #        actual = gaps.argmax(axis=0)
 #
-##        plot_gaps(gaps, confidence, data.shape[1])
-##        if 3 >= data.shape[1]:
-##            k = gaps.argmax(axis=0)
-##            inertia, point_map, centroids = default_clustering(data, k, 10,
-##                                                               300)
-##            plot_clusters(data, point_map, centroids)
+#        plot_gaps(gaps, confidence, data.shape[1])
+#        if 3 >= data.shape[1]:
+#            k = gaps.argmax(axis=0)
+#            inertia, point_map, centroids = default_clustering(data, k, 10,
+#                                                               300)
+#            plot_clusters(data, point_map, centroids)
 #
 #        self.assertEqual(expected, actual)
 #
@@ -227,40 +227,40 @@ class Test(unittest.TestCase):
 #        plot.plot_clusters_pca_reduced(data, point_map, centroids)
 
 
-    def test_ref_dispersions(self):
-        number_of_points = 100
-        dimensions = 2
-        number_of_clusters = 3
-
-        range_max = 100
-#        dispersions = np.zeros(shape=(range_max, 1))
-        mean_ref_dispersions = np.zeros(shape=(range_max, 1))
-        mean_differences = np.zeros(shape=(range_max, 1))
-        stddev_ref_dispersions = np.zeros(shape=(range_max, 1))
-        stddev_differences = np.zeros(shape=(range_max, 1))
-
-        shape = (number_of_points, dimensions)
-        c = csv.writer(open("C:\\Users\\JesseB\\Desktop\\disp_test_{}.csv"
-                            .format(number_of_points), "w"),
-                       delimiter=',')
-        data = np.zeros(shape=shape)
-        for row in range(number_of_points):
-            for col in range(dimensions):
-                data[row][col] = row % 2
-
-        for iteration in range(1, range_max):
-            mean_ref_dispersions[iteration], stddev_ref_dispersions[iteration]\
-            =\
-                find_reference_dispersion(data, iteration,
-                                          10000)
-            mean_differences[iteration] = mean_ref_dispersions[iteration] - \
-                                          mean_ref_dispersions[iteration - 1]
-
-            stddev_differences[iteration] = stddev_ref_dispersions[iteration]\
-                                            - stddev_ref_dispersions[
-                                              iteration - 1]
-            c.writerow([iteration,
-                        mean_ref_dispersions[iteration][0],
-                        mean_differences[iteration][0],
-                        stddev_ref_dispersions[iteration][0],
-                        stddev_differences[iteration][0]])
+#    def test_ref_dispersions(self):
+#        number_of_points = 100
+#        dimensions = 2
+#        number_of_clusters = 3
+#
+#        range_max = 100
+##        dispersions = np.zeros(shape=(range_max, 1))
+#        mean_ref_dispersions = np.zeros(shape=(range_max, 1))
+#        mean_differences = np.zeros(shape=(range_max, 1))
+#        stddev_ref_dispersions = np.zeros(shape=(range_max, 1))
+#        stddev_differences = np.zeros(shape=(range_max, 1))
+#
+#        shape = (number_of_points, dimensions)
+#        c = csv.writer(open("C:\\Users\\JesseB\\Desktop\\disp_test_{}.csv"
+#                            .format(number_of_points), "w"),
+#                       delimiter=',')
+#        data = np.zeros(shape=shape)
+#        for row in range(number_of_points):
+#            for col in range(dimensions):
+#                data[row][col] = row % 2
+#
+#        for iteration in range(1, range_max):
+#            mean_ref_dispersions[iteration], stddev_ref_dispersions[iteration]\
+#            =\
+#                find_reference_dispersion(data, iteration,
+#                                          10000)
+#            mean_differences[iteration] = mean_ref_dispersions[iteration] - \
+#                                          mean_ref_dispersions[iteration - 1]
+#
+#            stddev_differences[iteration] = stddev_ref_dispersions[iteration]\
+#                                            - stddev_ref_dispersions[
+#                                              iteration - 1]
+#            c.writerow([iteration,
+#                        mean_ref_dispersions[iteration][0],
+#                        mean_differences[iteration][0],
+#                        stddev_ref_dispersions[iteration][0],
+#                        stddev_differences[iteration][0]])
